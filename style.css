@@ -54,7 +54,7 @@ html, body {
 }
 
 body {
-  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
   font-size: 14px;
   background: var(--bg-app);
   color: var(--text-primary);
@@ -132,8 +132,10 @@ a:hover { text-decoration: underline; }
   font-size: 12px;
   color: var(--text-secondary);
   font-family: 'Courier New', monospace;
-  background: var(--bg-section);
-  border: 1px solid var(--border);
+  background: rgba(39, 48, 63, 0.7);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: var(--radius-sm);
   padding: 4px 10px;
 }
@@ -151,24 +153,33 @@ a:hover { text-decoration: underline; }
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
-  transition: background 0.15s, box-shadow 0.15s;
+  transition: all 0.2s ease;
   white-space: nowrap;
+}
+
+.btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 .btn-primary {
   background: var(--accent);
   color: #fff;
 }
-.btn-primary:hover { background: var(--accent-dark); }
+.btn-primary:hover {
+  background: var(--accent-dark);
+  transform: translateY(-1px);
+}
 
 .btn-accent {
   background: var(--accent);
   color: #fff;
-  box-shadow: 0 0 0 0 var(--accent-glow);
+  box-shadow: 0 4px 14px 0 var(--accent-glow);
 }
 .btn-accent:hover {
   background: var(--accent-dark);
-  box-shadow: 0 0 0 3px var(--accent-glow);
+  box-shadow: 0 6px 20px 0 rgba(59, 130, 246, 0.4);
+  transform: translateY(-1px);
 }
 
 .btn-ghost {
@@ -299,9 +310,9 @@ a:hover { text-decoration: underline; }
   padding: 8px 6px;
   background: var(--bg-section);
   border: 2px solid transparent;
-  border-radius: var(--radius);
+  border-radius: var(--radius-lg);
   cursor: pointer;
-  transition: border-color 0.15s, background 0.15s;
+  transition: all 0.2s ease;
   color: var(--text-secondary);
   font-size: 12px;
   font-weight: 500;
@@ -309,6 +320,7 @@ a:hover { text-decoration: underline; }
 .basemap-btn:hover {
   background: var(--bg-hover);
   color: var(--text-primary);
+  transform: translateY(-2px);
 }
 .basemap-btn.active {
   border-color: var(--accent);
@@ -366,12 +378,14 @@ a:hover { text-decoration: underline; }
   gap: 6px;
   text-align: center;
   cursor: pointer;
-  transition: border-color 0.15s, background 0.15s;
+  transition: all 0.3s ease;
+  background: rgba(255, 255, 255, 0.02);
 }
 .upload-area:hover,
 .upload-area.dragover {
   border-color: var(--accent);
-  background: var(--accent-glow);
+  background: linear-gradient(145deg, rgba(59, 130, 246, 0.1), rgba(59, 130, 246, 0.02));
+  transform: scale(1.02);
 }
 .upload-area:focus {
   outline: 2px solid var(--accent);
@@ -400,11 +414,14 @@ a:hover { text-decoration: underline; }
   align-items: center;
   gap: 8px;
   padding: 8px 8px;
-  border-radius: var(--radius-sm);
-  transition: background 0.12s;
+  border-radius: var(--radius);
+  transition: all 0.2s ease;
   margin-bottom: 4px;
 }
-.layer-item:hover { background: var(--bg-hover); }
+.layer-item:hover {
+  background: var(--bg-hover);
+  transform: translateX(2px);
+}
 
 .layer-color {
   width: 12px;
@@ -473,19 +490,22 @@ a:hover { text-decoration: underline; }
 
 /* MapLibre GL overrides for dark theme */
 .maplibregl-ctrl-group {
-  background: var(--bg-sidebar) !important;
-  border: 1px solid var(--border) !important;
+  background: rgba(31, 41, 55, 0.7) !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
   box-shadow: var(--shadow-sm) !important;
   border-radius: var(--radius) !important;
   overflow: hidden;
 }
 .maplibregl-ctrl-group button {
-  background: var(--bg-sidebar) !important;
+  background: transparent !important;
   color: var(--text-secondary) !important;
-  border-color: var(--border) !important;
+  border-color: rgba(255, 255, 255, 0.05) !important;
+  transition: all 0.2s ease;
 }
 .maplibregl-ctrl-group button:hover {
-  background: var(--bg-hover) !important;
+  background: rgba(255, 255, 255, 0.1) !important;
   color: var(--text-primary) !important;
 }
 .maplibregl-ctrl-group button span {
@@ -501,9 +521,11 @@ a:hover { text-decoration: underline; }
 }
 
 .maplibregl-popup-content {
-  background: var(--bg-sidebar) !important;
+  background: rgba(31, 41, 55, 0.7) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
   color: var(--text-primary) !important;
-  border: 1px solid var(--border) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
   border-radius: var(--radius) !important;
   box-shadow: var(--shadow) !important;
   padding: 12px 14px !important;
@@ -513,8 +535,8 @@ a:hover { text-decoration: underline; }
   overflow-y: auto;
 }
 .maplibregl-popup-tip {
-  border-top-color: var(--border) !important;
-  border-bottom-color: var(--border) !important;
+  border-top-color: rgba(255, 255, 255, 0.1) !important;
+  border-bottom-color: rgba(255, 255, 255, 0.1) !important;
 }
 .maplibregl-popup-close-button {
   color: var(--text-secondary) !important;
@@ -536,7 +558,7 @@ a:hover { text-decoration: underline; }
   background: rgba(255,255,255,0.92);
   color: #111;
   border-radius: var(--radius-sm);
-  font-family: 'Segoe UI', sans-serif;
+  font-family: 'Inter', 'Segoe UI', sans-serif;
   font-size: 12px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.3);
   pointer-events: none;
@@ -636,8 +658,10 @@ a:hover { text-decoration: underline; }
   bottom: 20px;
   right: 20px;
   width: 260px;
-  background: var(--bg-sidebar);
-  border: 1px solid var(--border);
+  background: rgba(31, 41, 55, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow);
   z-index: 150;
@@ -649,8 +673,8 @@ a:hover { text-decoration: underline; }
   align-items: center;
   justify-content: space-between;
   padding: 12px 14px 10px;
-  border-bottom: 1px solid var(--border);
-  background: var(--bg-section);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(39, 48, 63, 0.5);
 }
 
 .lp-title {
