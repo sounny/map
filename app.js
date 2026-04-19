@@ -927,6 +927,160 @@ function showToast(message, type = 'info') {
 }
 
 /* ============================================================
+   ARCGIS ONLINE INTEGRATION
+   ============================================================ */
+
+/**
+ * Search ArcGIS Online for public Feature Services, Map Services,
+ * and Image Services (IMS) matching the user's query.
+ *
+ * Uses the ArcGIS Portal sharing REST search API (no API key required
+ * for public content).
+ *
+ * @param {string} query
+ */
+async function searchArcGISOnline(query) {
+  const trimmed = query.trim();
+  const resultsEl = document.getElementById('arcgis-results');
+
+  if (!trimmed) {
+    resultsEl.innerHTML = '';
+    return;
+  }
+
+  resultsEl.innerHTML = '<p class="arcgis-msg">Searching…</p>';
+
+  try {
+    const params = new URLSearchParams({
+      q: trimmed,
+      num: '8',
+      f: 'json',
+      access: 'public',
+      type: 'Feature Service,Map Service,Image Service'
+    });
+
+    const res = await fetch(
+      `https://www.arcgis.com/sharing/rest/search?${params}`
+    );
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+    const data = await res.json();
+    const results = (data.results || []).filter(item => item.url);
+
+    if (results.length === 0) {
+      resultsEl.innerHTML = '<p class="arcgis-msg">No results found.</p>';
+      return;
+    }
+
+    renderArcGISResults(results);
+  } catch (err) {
+    resultsEl.innerHTML =
+      `<p class="arcgis-msg error">Search failed: ${escapeHtml(err.message)}</p>`;
+    console.error('[SounnyMap] ArcGIS search error:', err);
+  }
+}
+
+/**
+ * Render ArcGIS Online search result cards into the sidebar panel.
+ * @param {Array} results  – items from the ArcGIS sharing search API
+ */
+function renderArcGISResults(results) {
+  const container = document.getElementById('arcgis-results');
+  container.innerHTML = '';
+
+  results.forEach(item => {
+    const typeLabel =
+      item.type === 'Feature Service' ? 'Feature' :
+      item.type === 'Image Service'   ? 'Image'   : 'Map';
+
+    const div = document.createElement('div');
+    div.className = 'arcgis-result-item';
+    div.innerHTML = `
+      <div class="arcgis-result-info">
+        <div class="arcgis-result-title"
+             title="${escapeHtml(item.title || item.name || 'Untitled')}"
+        >${escapeHtml(item.title || item.name || 'Untitled')}</div>
+        <div class="arcgis-result-meta">
+          ${escapeHtml(item.owner || '')}
+          <span class="arcgis-type-badge">${typeLabel}</span>
+        </div>
+      </div>
+      <button class="arcgis-add-btn" type="button" title="Add to map">Add</button>
+    `;
+
+    div.querySelector('.arcgis-add-btn').addEventListener('click', async (e) => {
+      const btn = e.currentTarget;
+      btn.disabled = true;
+      btn.textContent = '…';
+      await addArcGISService(item);
+      btn.textContent = '✓';
+    });
+
+    container.appendChild(div);
+  });
+}
+
+/**
+ * Add an ArcGIS Online service to the map.
+ *
+ * Feature Services are queried and loaded as GeoJSON vector layers.
+ * Map Services and Image Services (IMS) are added as raster tile layers
+ * using the ArcGIS REST tile endpoint pattern: /tile/{z}/{y}/{x}.
+ *
+ * @param {object} item  – ArcGIS portal item from the search results
+ */
+async function addArcGISService(item) {
+  const serviceUrl = (item.url || '').replace(/\/$/, '');
+  const rawName = item.title || item.name || 'ArcGIS Layer';
+  const name = escapeHtml(rawName);
+
+  if (!serviceUrl) {
+    showToast('No service URL available for this item.', 'warning');
+    return;
+  }
+
+  if (item.type === 'Feature Service') {
+    // Fetch the first layer as GeoJSON
+    const queryUrl =
+      `${serviceUrl}/0/query?` +
+      `where=1%3D1&outFields=*&f=geojson&resultRecordCount=1000&outSR=4326`;
+
+    try {
+      const res = await fetch(queryUrl);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const geojson = await res.json();
+      if (!geojson.type) throw new Error('Invalid GeoJSON response');
+      loadGeoJSON(rawName, geojson);
+      const count = geojson.features ? geojson.features.length : 0;
+      if (count >= 1000) {
+        showToast(`"${name}" loaded (first 1000 features – dataset may be larger)`, 'warning');
+      } else {
+        showToast(`Added "${name}"`, 'success');
+      }
+    } catch (err) {
+      showToast(`Could not load "${name}": ${err.message}`, 'error');
+      console.error('[SounnyMap] ArcGIS FeatureService error:', err);
+    }
+  } else {
+    // Map Service or Image Service → raster tile layer
+    // ArcGIS REST tile URL: /tile/{z}/{row}/{col} == /tile/{z}/{y}/{x}
+    const tilesUrl = `${serviceUrl}/tile/{z}/{y}/{x}`;
+    const layerId  = `arcgis-${rawName.replace(/\s+/g, '-').toLowerCase()}-${++layerCounter}`;
+
+    try {
+      addRasterLayer(layerId, tilesUrl, {
+        attribution: `${rawName} (ArcGIS Online)`,
+        opacity: 0.85
+      });
+      showToast(`Added "${name}" as tile layer`, 'success');
+    } catch (err) {
+      showToast(`Could not add "${name}": ${err.message}`, 'error');
+      console.error('[SounnyMap] ArcGIS MapService error:', err);
+    }
+  }
+}
+
+/* ============================================================
    EARTH OBSERVATION / AGENT INTEGRATION STUBS
    ============================================================ */
 
@@ -987,7 +1141,16 @@ window.SounnyMap = {
 
 /** Sidebar toggle (hamburger button in header) */
 document.getElementById('sidebar-toggle').addEventListener('click', () => {
-  document.getElementById('sidebar').classList.toggle('collapsed');
+  const sidebar = document.getElementById('sidebar');
+  const overlay = document.getElementById('sidebar-overlay');
+  const isNowCollapsed = sidebar.classList.toggle('collapsed');
+  overlay.classList.toggle('active', !isNowCollapsed);
+});
+
+/** Mobile sidebar overlay – tap to close */
+document.getElementById('sidebar-overlay').addEventListener('click', () => {
+  document.getElementById('sidebar').classList.add('collapsed');
+  document.getElementById('sidebar-overlay').classList.remove('active');
 });
 
 /** Basemap switcher buttons */
@@ -1073,6 +1236,16 @@ document.getElementById('layout-close-btn').addEventListener('click', deactivate
 /** Export PDF button */
 document.getElementById('export-pdf-btn').addEventListener('click', exportToPDF);
 
+/** ArcGIS Online search – button click */
+document.getElementById('arcgis-search-btn').addEventListener('click', () => {
+  searchArcGISOnline(document.getElementById('arcgis-search-input').value);
+});
+
+/** ArcGIS Online search – Enter key */
+document.getElementById('arcgis-search-input').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') searchArcGISOnline(e.target.value);
+});
+
 /* ============================================================
    13. BOOTSTRAP
    ============================================================ */
@@ -1082,3 +1255,8 @@ map.on('load', () => {
   showToast('Map ready. Load GeoJSON data or switch basemaps to begin.', 'success');
   updateLayerCount();
 });
+
+/** On mobile viewports, start with the sidebar collapsed so the map is immediately visible */
+if (window.matchMedia('(max-width: 640px)').matches) {
+  document.getElementById('sidebar').classList.add('collapsed');
+}
