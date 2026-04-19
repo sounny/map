@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SounnyMap – GIS Platform</title>
+
+    <!-- MapLibre GL JS – Core mapping engine (vector tiles, WebGL rendering) -->
+    <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4/dist/maplibre-gl.css" />
+    <script src="https://unpkg.com/maplibre-gl@4/dist/maplibre-gl.js"></script>
+
+    <!-- Application styles -->
+    <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<div id="app">
+
+    <!-- ═══════════════════════════════════════════════════
+         TOP HEADER BAR
+    ═══════════════════════════════════════════════════ -->
+    <header id="top-bar">
+        <div class="header-left">
+            <button id="sidebar-toggle" class="btn-icon" title="Toggle sidebar" aria-label="Toggle sidebar">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="3" y1="6"  x2="21" y2="6"/>
+                    <line x1="3" y1="12" x2="21" y2="12"/>
+                    <line x1="3" y1="18" x2="21" y2="18"/>
+                </svg>
+            </button>
+            <div class="logo">
+                <!-- Globe icon -->
+                <svg class="logo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <circle cx="12" cy="12" r="10"/>
+                    <path d="M2 12h20M12 2c-3 4-5 7-5 10s2 6 5 10M12 2c3 4 5 7 5 10s-2 6-5 10"/>
+                </svg>
+                <span class="logo-text">Map</span>
+            </div>
+        </div>
+
+        <div class="header-center">
+            <!-- Live cursor coordinates and zoom level -->
+            <div id="map-info" aria-live="polite">
+                <span id="map-coords">0.0000°, 0.0000°</span>
+                <span class="info-sep">|</span>
+                <span id="map-zoom">Zoom: 2</span>
+            </div>
+        </div>
+
+        <div class="header-right">
+            <!-- Opens the layout/print panel -->
+            <button id="layout-mode-btn" class="btn btn-accent" title="Open layout editor for PDF export">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                    <rect x="3" y="3" width="18" height="18" rx="2"/>
+                    <line x1="3" y1="9" x2="21" y2="9"/>
+                    <line x1="9" y1="21" x2="9" y2="9"/>
+                </svg>
+                Layout / Export
+            </button>
+        </div>
+    </header>
+
+    <!-- ═══════════════════════════════════════════════════
+         MAIN CONTENT – SIDEBAR + MAP
+    ═══════════════════════════════════════════════════ -->
+    <div id="main-content">
+
+        <!-- ─────────────────────────────────────────────
+             LEFT SIDEBAR – Layer and tool controls
+        ───────────────────────────────────────────── -->
+        <aside id="sidebar" aria-label="Map controls">
+
+            <!-- Basemap Switcher ─────────────────────── -->
+            <section class="sidebar-section" id="section-basemap">
+                <div class="section-header">
+                    <span class="section-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                            <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/>
+                            <line x1="8" y1="2" x2="8" y2="18"/>
+                            <line x1="16" y1="6" x2="16" y2="22"/>
+                        </svg>
+                    </span>
+                    <h3 class="section-title">Basemap</h3>
+                </div>
+                <div class="basemap-grid" role="group" aria-label="Choose basemap style">
+                    <button class="basemap-btn active" data-basemap="street" title="Standard street map">
+                        <span class="basemap-thumb basemap-street"></span>
+                        <span class="basemap-label">Street</span>
+                    </button>
+                    <button class="basemap-btn" data-basemap="satellite" title="Satellite / aerial imagery">
+                        <span class="basemap-thumb basemap-satellite"></span>
+                        <span class="basemap-label">Satellite</span>
+                    </button>
+                </div>
+            </section>
+
+            <!-- GeoJSON Data Loader ─────────────────── -->
+            <section class="sidebar-section" id="section-data">
+                <div class="section-header">
+                    <span class="section-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+                        </svg>
+                    </span>
+                    <h3 class="section-title">Data</h3>
+                </div>
+                <!-- Hidden file input; triggered by the drop area or browse button -->
+                <input type="file" id="geojson-input" accept=".geojson,.json" multiple hidden aria-label="Choose GeoJSON files" />
+                <div class="upload-area" id="upload-drop-area" tabindex="0" role="button"
+                     aria-label="Drop GeoJSON files here or click to browse">
+                    <span class="upload-icon">↑</span>
+                    <p class="upload-text">Drop GeoJSON files here</p>
+                    <span class="upload-or">or</span>
+                    <button class="btn btn-primary btn-sm" id="upload-btn" type="button">Browse Files</button>
+                </div>
+            </section>
+
+            <!-- Layer List ──────────────────────────── -->
+            <section class="sidebar-section" id="section-layers">
+                <div class="section-header">
+                    <span class="section-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                            <polygon points="12 2 2 7 12 12 22 7 12 2"/>
+                            <polyline points="2 17 12 22 22 17"/>
+                            <polyline points="2 12 12 17 22 12"/>
+                        </svg>
+                    </span>
+                    <h3 class="section-title">Layers</h3>
+                    <span class="badge" id="layer-count">0</span>
+                </div>
+                <div id="layer-list">
+                    <p class="empty-hint">No layers loaded.<br>Upload a GeoJSON file to begin.</p>
+                </div>
+            </section>
+
+            <!-- Sidebar footer ─────────────────────── -->
+            <div class="sidebar-footer">
+                <p>SounnyMap v1.0</p>
+                <p>Powered by <a href="https://maplibre.org" target="_blank" rel="noopener">MapLibre GL JS</a></p>
+            </div>
+
+        </aside><!-- end #sidebar -->
+
+        <!-- ─────────────────────────────────────────────
+             MAP WRAPPER – Contains the map and overlays
+        ───────────────────────────────────────────── -->
+        <div id="map-wrapper">
+
+            <!-- The map container – MapLibre renders into this element -->
+            <div id="map" aria-label="Interactive map"></div>
+
+            <!-- ─────────────────────────────────────────
+                 LAYOUT OVERLAY
+                 Positioned elements visible in Layout Mode.
+                 These appear on top of the map canvas and
+                 are included in the PDF print output.
+            ───────────────────────────────────────────── -->
+            <div id="layout-overlay" class="hidden" aria-hidden="true">
+
+                <!-- Map title (top-center) -->
+                <div id="lo-title" class="lo-el lo-title hidden">
+                    <span id="lo-title-text">Map Title</span>
+                </div>
+
+                <!-- North arrow (top-right) -->
+                <div id="lo-north" class="lo-el lo-north hidden" title="North arrow">
+                    <svg viewBox="0 0 40 70" xmlns="http://www.w3.org/2000/svg" aria-label="North arrow">
+                        <!-- White upper half of arrow (North) -->
+                        <polygon points="20,2 28,34 20,28 12,34" fill="white" stroke="#222" stroke-width="1.5"/>
+                        <!-- Dark lower half of arrow (South) -->
+                        <polygon points="20,54 28,34 20,28 12,34" fill="#333" stroke="#222" stroke-width="1.5"/>
+                        <text x="20" y="67" text-anchor="middle" font-size="12" font-weight="bold" fill="#222" font-family="sans-serif">N</text>
+                    </svg>
+                </div>
+
+                <!-- Legend (bottom-left) -->
+                <div id="lo-legend" class="lo-el lo-legend hidden">
+                    <div class="lo-legend-title">Legend</div>
+                    <div id="lo-legend-content"></div>
+                </div>
+
+                <!-- Scale bar (bottom-center) -->
+                <div id="lo-scale" class="lo-el lo-scale hidden">
+                    <div id="lo-scale-bar"></div>
+                    <div id="lo-scale-label"></div>
+                </div>
+
+                <!-- Sources / attribution (bottom-right) -->
+                <div id="lo-sources" class="lo-el lo-sources hidden">
+                    <strong>Sources:</strong>
+                    <span id="lo-sources-text"></span>
+                </div>
+
+            </div><!-- end #layout-overlay -->
+
+            <!-- ─────────────────────────────────────────
+                 LAYOUT PANEL
+                 Floats over the map (bottom-left/right).
+                 Provides controls to configure layout elements
+                 and export the map as PDF.
+            ───────────────────────────────────────────── -->
+            <div id="layout-panel" class="hidden" role="dialog" aria-label="Layout editor" aria-modal="false">
+                <div class="lp-header">
+                    <h3 class="lp-title">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                            <rect x="3" y="3" width="18" height="18" rx="2"/>
+                            <line x1="3" y1="9" x2="21" y2="9"/>
+                            <line x1="9" y1="21" x2="9" y2="9"/>
+                        </svg>
+                        Layout Editor
+                    </h3>
+                    <button id="layout-close-btn" class="btn-icon" title="Close layout editor" aria-label="Close layout editor">✕</button>
+                </div>
+
+                <div class="lp-body">
+
+                    <!-- Title control -->
+                    <div class="lp-group">
+                        <label class="lp-label">
+                            <input type="checkbox" id="lp-show-title" checked />
+                            Map Title
+                        </label>
+                        <input type="text" id="lp-title-input" class="lp-input"
+                               placeholder="Enter map title…" value="My Map" />
+                    </div>
+
+                    <!-- Legend control -->
+                    <div class="lp-group">
+                        <label class="lp-label">
+                            <input type="checkbox" id="lp-show-legend" checked />
+                            Legend
+                        </label>
+                        <p class="lp-hint">Auto-populated from loaded layers</p>
+                    </div>
+
+                    <!-- North arrow control -->
+                    <div class="lp-group">
+                        <label class="lp-label">
+                            <input type="checkbox" id="lp-show-north" checked />
+                            North Arrow
+                        </label>
+                    </div>
+
+                    <!-- Scale bar control -->
+                    <div class="lp-group">
+                        <label class="lp-label">
+                            <input type="checkbox" id="lp-show-scale" checked />
+                            Scale Bar
+                        </label>
+                    </div>
+
+                    <!-- Data sources / attribution -->
+                    <div class="lp-group">
+                        <label class="lp-label">
+                            <input type="checkbox" id="lp-show-sources" />
+                            Data Sources
+                        </label>
+                        <textarea id="lp-sources-input" class="lp-input lp-textarea"
+                                  placeholder="e.g. OpenStreetMap contributors, ESRI…" rows="3"></textarea>
+                    </div>
+
+                    <!-- Export button -->
+                    <button id="export-pdf-btn" class="btn btn-accent btn-full">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                            <polyline points="14 2 14 8 20 8"/>
+                        </svg>
+                        Export to PDF
+                    </button>
+                    <p class="lp-hint lp-hint-center">
+                        Opens the browser print dialog.<br>
+                        Select <em>"Save as PDF"</em> as the destination.
+                    </p>
+
+                </div><!-- end .lp-body -->
+            </div><!-- end #layout-panel -->
+
+        </div><!-- end #map-wrapper -->
+
+    </div><!-- end #main-content -->
+
+</div><!-- end #app -->
+
+<!-- Application logic -->
+<script src="app.js"></script>
+</body>
+</html>
