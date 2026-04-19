@@ -114,6 +114,28 @@
                 </div>
             </section>
 
+            <!-- ArcGIS Online Search ─────────────────── -->
+            <section class="sidebar-section" id="section-arcgis">
+                <div class="section-header">
+                    <span class="section-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                            <circle cx="11" cy="11" r="8"/>
+                            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                        </svg>
+                    </span>
+                    <h3 class="section-title">ArcGIS Online</h3>
+                </div>
+                <div class="arcgis-search-wrap">
+                    <div class="arcgis-search-row">
+                        <input type="text" id="arcgis-search-input" class="arcgis-input"
+                               placeholder="Search public datasets…"
+                               aria-label="Search ArcGIS Online public datasets" />
+                        <button id="arcgis-search-btn" class="btn btn-primary btn-sm" type="button">Go</button>
+                    </div>
+                    <div id="arcgis-results" aria-live="polite"></div>
+                </div>
+            </section>
+
             <!-- Layer List ──────────────────────────── -->
             <section class="sidebar-section" id="section-layers">
                 <div class="section-header">
@@ -278,6 +300,9 @@
         </div><!-- end #map-wrapper -->
 
     </div><!-- end #main-content -->
+
+    <!-- Mobile sidebar backdrop – tap to close the sidebar -->
+    <div id="sidebar-overlay" aria-hidden="true"></div>
 
 </div><!-- end #app -->
 

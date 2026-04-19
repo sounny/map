@@ -881,3 +881,130 @@ a:hover { text-decoration: underline; }
 
   #map-info { display: none; }
 }
+
+/* ── Mobile sidebar backdrop ─────────────────────────────── */
+#sidebar-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 299;
+  cursor: pointer;
+}
+
+@media (max-width: 640px) {
+  #sidebar-overlay.active {
+    display: block;
+  }
+}
+
+/* ── ArcGIS Online search ────────────────────────────────── */
+.arcgis-search-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.arcgis-search-row {
+  display: flex;
+  gap: 6px;
+}
+
+.arcgis-input {
+  flex: 1;
+  min-width: 0;
+  background: var(--bg-section);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 6px 9px;
+  color: var(--text-primary);
+  font-size: 12px;
+  transition: border-color 0.15s;
+}
+.arcgis-input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+.arcgis-input::placeholder { color: var(--text-muted); }
+
+#arcgis-results {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 240px;
+  overflow-y: auto;
+}
+#arcgis-results::-webkit-scrollbar { width: 3px; }
+#arcgis-results::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+.arcgis-result-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 8px;
+  background: var(--bg-section);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.arcgis-result-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.arcgis-result-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.arcgis-result-meta {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10px;
+  color: var(--text-muted);
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.arcgis-type-badge {
+  flex-shrink: 0;
+  font-size: 9px;
+  padding: 1px 5px;
+  border-radius: 3px;
+  background: var(--bg-hover);
+  color: var(--text-secondary);
+}
+
+.arcgis-add-btn {
+  flex-shrink: 0;
+  align-self: center;
+  padding: 4px 9px;
+  font-size: 11px;
+  font-weight: 500;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: var(--accent);
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.arcgis-add-btn:hover { background: var(--accent-dark); }
+.arcgis-add-btn:disabled {
+  background: var(--bg-hover);
+  color: var(--text-muted);
+  cursor: default;
+}
+
+.arcgis-msg {
+  font-size: 12px;
+  color: var(--text-muted);
+  text-align: center;
+  padding: 6px 0;
+}
+.arcgis-msg.error { color: var(--danger); }
