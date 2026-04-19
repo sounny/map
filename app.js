@@ -651,10 +651,10 @@ function exportToPDF() {
 
   // North arrow SVG
   const northSVG = `
-    <svg viewBox="0 0 40 70" xmlns="http://www.w3.org/2000/svg" width="36" height="63">
-      <polygon points="20,2 28,34 20,28 12,34" fill="white" stroke="#222" stroke-width="1.5"/>
-      <polygon points="20,54 28,34 20,28 12,34" fill="#333" stroke="#222" stroke-width="1.5"/>
-      <text x="20" y="67" text-anchor="middle" font-size="12" font-weight="bold" fill="#222" font-family="sans-serif">N</text>
+    <svg viewBox="0 0 40 72" xmlns="http://www.w3.org/2000/svg" width="36" height="65">
+      <text x="20" y="11" text-anchor="middle" font-size="11" font-weight="bold" fill="#222" font-family="sans-serif">N</text>
+      <polygon points="20,14 28,44 20,38 12,44" fill="white" stroke="#222" stroke-width="1.5"/>
+      <polygon points="20,62 28,44 20,38 12,44" fill="#333" stroke="#222" stroke-width="1.5"/>
     </svg>`;
 
   // Scale bar values (captured from the live scale display)
